@@ -47,13 +47,11 @@ plots/
 ############################################
 # Datasets (IMPORTANT)
 ############################################
-data/
-dataset/
+
 datasets/
 MoNuSeg/
 TNBC/
-images/
-masks/
+
 
 ############################################
 # Temporary & cache
