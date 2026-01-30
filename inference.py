@@ -5,25 +5,46 @@ from models.resunet_cbam import CBAMResUNet
 from models.unet_plain import UNet
 
 
-dataset = SegDataset("data/images", "data/masks")
+NUM_IMAGES = 5
+IMAGE_DIR = "data/images"
+MASK_DIR = "data/masks"
+
+dataset = SegDataset(IMAGE_DIR, MASK_DIR)
 
 unet = UNet()
-unet.load_state_dict(torch.load("unet_plain.pth"))
+unet.load_state_dict(torch.load("unet_plain.pth", map_location="cpu"))
 unet.eval()
 
 cbam = CBAMResUNet()
-cbam.load_state_dict(torch.load("cbam_resunet.pth"))
+cbam.load_state_dict(torch.load("cbam_resunet.pth", map_location="cpu"))
 cbam.eval()
 
-img, mask = dataset[0]
+fig, axes = plt.subplots(NUM_IMAGES, 4, figsize=(18, 4 * NUM_IMAGES))
 
 with torch.no_grad():
-    pred_unet = unet(img.unsqueeze(0))[0][0]
-    pred_cbam = cbam(img.unsqueeze(0))[0][0]
+    for i in range(NUM_IMAGES):
+        img, mask = dataset[i]
 
-plt.figure(figsize=(16,4))
-plt.subplot(1,4,1); plt.title("Input"); plt.imshow(img.permute(1,2,0))
-plt.subplot(1,4,2); plt.title("GT"); plt.imshow(mask[0], cmap="gray")
-plt.subplot(1,4,3); plt.title("U-Net"); plt.imshow(pred_unet, cmap="gray")
-plt.subplot(1,4,4); plt.title("CBAM-ResUNet"); plt.imshow(pred_cbam, cmap="gray")
+        img_in = img.unsqueeze(0)
+
+        pred_unet = unet(img_in)[0][0]
+        pred_cbam = cbam(img_in)[0][0]
+
+        axes[i, 0].imshow(img.permute(1, 2, 0))
+        axes[i, 0].set_title("Input")
+        axes[i, 0].axis("off")
+
+        axes[i, 1].imshow(mask[0], cmap="gray")
+        axes[i, 1].set_title("GT")
+        axes[i, 1].axis("off")
+
+        axes[i, 2].imshow(pred_unet, cmap="gray")
+        axes[i, 2].set_title("U-Net")
+        axes[i, 2].axis("off")
+
+        axes[i, 3].imshow(pred_cbam, cmap="gray")
+        axes[i, 3].set_title("CBAM-ResUNet")
+        axes[i, 3].axis("off")
+
+plt.tight_layout()
 plt.show()
